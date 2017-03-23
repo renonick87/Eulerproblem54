@@ -323,7 +323,7 @@ fs.readFile('poker.txt', {encoding: 'utf8'}, function(err, data){
   //console.log(straight(test))
   //console.log(it)
 })
-var player1HandType = checkHand(test)
+/*var player1HandType = checkHand(test)
 var player2HandType = checkHand(test2)
 var player1Hand = hands.indexOf(player1HandType)
 var player2Hand = hands.indexOf(player2HandType)
