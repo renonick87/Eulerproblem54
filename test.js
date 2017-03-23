@@ -1,0 +1,1 @@
+console.log(require('./problem54.js'))
