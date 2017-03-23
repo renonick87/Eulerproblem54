@@ -276,6 +276,7 @@ function checkHand(x){
 }
 
 fs.readFile('poker.txt', {encoding: 'utf8'}, function(err, data){
+  var best = 0
   if (err) throw err
   it = data.toString('ascii', 0, data.length).split('\n')//JSON.parse(data)
   for(var i = 0; i < it.length; i++){
