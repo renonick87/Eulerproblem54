@@ -3,8 +3,14 @@ var cards = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A
 var hand = '8C TS KC 9H 4S 7D 2S 5D 3S AC'.split(' ')
 var fs = require('fs')
 var it;
-var test = ['8C', '9C', 'AC', 'JC', 'TC']
-var test2 = ['Qd', 'Kd', 'Jd', 'Td', '4d']
+var test = '5H 5C 6S 7S KD.5D 8C 9S JS AC.2D 9C AS AH AC.4D 6S 9H QH QC.2H 2D 4C 4D 4S'.split('.')
+var test2 = '2C 3S 8S 8D TD.2C 5C 7D 8S QH.3D 6D 7D TD QD.3D 6D 7H QD QS.3C 3D 3S 9S 9D'.split('.')
+for(var i = 0; i < test.length; i++){
+  test[i] = test[i].split(' ')
+}
+for(var i = 0; i < test2.length; i++){
+  test2[i] = test2[i].split(' ')
+}
 var wins = 0;
 
 Array.prototype.multiIndexOf = function (el) {
@@ -16,25 +22,13 @@ Array.prototype.multiIndexOf = function (el) {
     }
     return idxs;
 };
-//console.log(cards.indexOf('A'))
 
 function highCard(x){
   var best = 0
-  //console.log(x)
-  if(cards.indexOf(x[0][0]) > best){
-    best = cards.indexOf(x[0][0])
-  }
-  if(cards.indexOf(x[1][0]) > best){
-    best = cards.indexOf(x[1][0])
-  }
-  if(cards.indexOf(x[2][0]) > best){
-    best = cards.indexOf(x[2][0])
-  }
-  if(cards.indexOf(x[3][0]) > best){
-    best = cards.indexOf(x[3][0])
-  }
-  if(cards.indexOf(x[4][0]) > best){
-    best = cards.indexOf(x[4][0])
+  for(var i = 0; i < x.length; i++){
+    if(cards.indexOf(x[i][0]) > best){
+      best = cards.indexOf(x[i][0])
+    }
   }
   return best
 }
@@ -58,28 +52,8 @@ function ofAKind(x, sameHand = false, q = 0){
       if(nope){
         nums.push(y)
       }
-      /*if(nums[0] === undefined){
-        nums.push(y) //store as the first instance of multiple instances
-        console.log(nums.indexOf(y))
-      } else if (nums.contains(y) === -1){
-        nums.push(y) //store as the first instance of multiple instances
-        console.log(nums.indexOf(y))
-      }*/
-      //nums.push(y)
-      //for(var j = 0; j < nums.length; j++){
-      //  x.splice(nums[j], 1) //remove multiple instances of the first character with multiple instances from x
-      //}
     }
   }
-  /*for(var i = 0; i < nums.length; i++){
-    let z = nums.multiIndexOf(nums[i])
-    if(z.length > 1){
-      console.log('sure')
-      for(var j = 0; j < z.length; j++){
-        nums.splice(z[j], 1)
-      }
-    }
-  }*/
   if(nums.length === 0){ //There are no numbers that appear multiple times
     return false
   } else if(nums.length === 2){ //There are two cards that have multiple instances(Full House or Two Pair)
@@ -106,15 +80,27 @@ function ofAKind(x, sameHand = false, q = 0){
           }
         }
       }
-      return 'Two Pair'
+      return 'Two Pairs'
     }
   } else if(nums.length === 1){ //There is one card with multiple instances(Pair, Three of a Kind, Four of a Kind)
     var first = nums[0].length
     if(first === 2){// Pair
-      if(sameHand){
+      if(sameHand === true){
         return x[nums[0][0]]
+      } else if(sameHand === 'bear'){
+        let others = []
+        for(var i = 0; i < 5; i++){
+          if(nums[0].indexOf(i) === -1){
+            others.push(cards.indexOf(x[i][0]))
+          }
+        }
+        others.sort(function(a, b){return b-a})
+        if(q > 0){
+          //console.log(x, others[q])
+        }
+        return others[q]
       }
-      return 'Pair'
+      return 'One Pair'
     } else if(first === 3){//Three of a Kind
       if(sameHand){
         return x[nums[0][0]]
@@ -123,7 +109,7 @@ function ofAKind(x, sameHand = false, q = 0){
     } else if(first === 4){//Four of a Kind
       if(sameHand){
         return x[nums[0][0]]
-      }
+      } else if(sameHand === 'bear')
       return 'Four of a Kind'
     }
   }
@@ -132,13 +118,11 @@ function ofAKind(x, sameHand = false, q = 0){
 function aceAndTen(x){
   var l = x.filter(function(word, index){
     if(word.match('A')){
-      //console.log(index);
       return true;
     }
     return false
   }) +''+ x.filter(function(word, index){
     if(word.match('T')){
-      //console.log(index);
       return true;
     }
     return false
@@ -148,7 +132,6 @@ function aceAndTen(x){
   }
   return false
 }
-//console.log(test.indexOf(l))
 
 function straight(x, same = false){
   var one = []
@@ -165,14 +148,11 @@ function straight(x, same = false){
     return true
   }
   var a = one.indexOf(13)
-  //console.log(a)
   if(a === -1){
     return false
   }
-  //console.log(one)
   one[a] = 0
   one.sort(function(a, b){return a-b})
-  //console.log(one)
   if(one[0] === one[1] - 1 && one[1] === one[2] - 1 && one[2] === one[3] - 1 && one[3] === one[4] - 1){
     return true
   }
@@ -192,34 +172,53 @@ function sameHand(player1, player2, hand){
   var best1 = 10;
   var best2 = 10;
   switch(hand){
+    case 'One Pair':
+    one = cards[ofAKind(player1, true)]
+    two = cards[ofAKind(player2, true)]
+    if(one > two){
+      return true
+    } else if(one === two){
+      one = cards[ofAKind(player1, 'bear')]
+      two = cards[ofAKind(player2, 'bear')]
+      if(one === -1 || two === -1)
+        console.log(ofAKind(player1,'bear').toString(), ofAKind(player2,'bear').toString(), 'WRONG')
+      if(one > two){
+        return true
+      } else if(one === two){
+
+        one = cards.indexOf(ofAKind(player1, 'bear', 1).toString())
+        two = cards.indexOf(ofAKind(player2, 'bear', 1).toString())
+        if(one > two){
+          return true
+        }
+      }
+    }
+    return false
+    break;
     case 'Full House':
     case 'Three of a Kind':
-    case 'One Pair':
     case 'Four of a Kind':
     one = cards.indexOf(ofAKind(player1, true)[0])
     two = cards.indexOf(ofAKind(player2, true)[0])
-    console.log(one, two)
+    //console.log(one, two,'wooh', hand)
     if(one > two){
       return true
     }
     return false
     break;
-    case 'Two Pair':
+    case 'Two Pairs':
     one = cards.indexOf(ofAKind(player1, true)[0])
     two = cards.indexOf(ofAKind(player2, true)[0])
-    //console.log(one, two)
     if(one > two){
       return true
     } else if(one === two){
       one = cards.indexOf(ofAKind(player1, true, 1)[0])
       two = cards.indexOf(ofAKind(player2, true, 1)[0])
-      console.log(ofAKind(player1, true, 1))
       if(one > two){
         return true
       } else if(one === two){
         one = ofAKind(player1, 'bear')
         two = ofAKind(player2, 'bear')
-        console.log(typeof one,typeof two)
         if(one > two){
           return true
         }
@@ -241,8 +240,17 @@ function sameHand(player1, player2, hand){
     two = highCard(player2)
     if(one > two){
       return true
+    } else if(one === two){
+
     }
     return false
+    break;
+    case 'High Card':
+    one = highCard(player1)
+    two = highCard(player2)
+    if(one > two){
+      return true
+    }
     break;
     case 'Royal Flush':
     return false;
@@ -250,10 +258,7 @@ function sameHand(player1, player2, hand){
   }
 }
 
-//console.log(hand[0][1])
-
 function checkHand(x){
-  //var success = []
   if(sameSuit(x)){ //Flush
     if(straight(x)){ //Straight Flush
       if(aceAndTen(x)){ //Royal Flush
@@ -289,62 +294,44 @@ fs.readFile('poker.txt', {encoding: 'utf8'}, function(err, data){
       } else {
         player2.push(it[i][j])
       }
-      //console.log(player2)
-      //console.log(it[i][j])
     }
     var player1HandType = checkHand(player1)
     var player2HandType = checkHand(player2)
     var player1Hand = hands.indexOf(player1HandType)
     var player2Hand = hands.indexOf(player2HandType)
+    if(player1Hand === -1 || player2Hand === -1){
+      console.log('whyyyyyy')
+    }
     if(player1Hand > player2Hand){
       best++
     } else if(player2Hand > player1Hand){
-      //console.log('Player 2 Wins1')
     } else {
-      if(sameHand(test, test2, player1HandType)){
-        best++
-        //console.log('Player 1 Wins2')
-      } else {
-        //console.log(player2HandType)
-        //console.log('Player 2 Wins2')
+      if(player1HandType === 'Full House'){
+        console.log(player1, player2)
       }
-      /*if(highCard(test) > highCard(test2)){
-        console.log('Player 1 Wins')
-      } else if(highCard(test2) > highCard(test)){
-        console.log('Player 2 Wins')
-      } else {
-        console.log('It\'s a Tie')
-      }*/
+      if(sameHand(player1, player2, player1HandType)){
+        best++
+      }
     }
   }
-  module.exports = best
-  //console.log(checkHand(test))
-  //console.log(sameSuit(test))
-  //console.log(straight(test))
-  //console.log(it)
+  console.log(best)
 })
-/*var player1HandType = checkHand(test)
-var player2HandType = checkHand(test2)
-var player1Hand = hands.indexOf(player1HandType)
-var player2Hand = hands.indexOf(player2HandType)
-if(player1Hand > player2Hand){
-  console.log('Player 1 Wins1')
-} else if(player2Hand > player1Hand){
-  console.log('Player 2 Wins1')
-} else {
-  if(sameHand(test, test2, player1HandType)){
-    console.log('Player 1 Wins2')
-  } else {
-    console.log(player2HandType)
-    console.log('Player 2 Wins2')
-  }
-  /*if(highCard(test) > highCard(test2)){
+
+for(var i = 0; i < test.length; i++){
+  var player1HandType = checkHand(test[i])
+  var player2HandType = checkHand(test2[i])
+  var player1Hand = hands.indexOf(player1HandType)
+  var player2Hand = hands.indexOf(player2HandType)
+  if(player1Hand > player2Hand){
     console.log('Player 1 Wins')
-  } else if(highCard(test2) > highCard(test)){
+  } else if(player2Hand > player1Hand){
     console.log('Player 2 Wins')
   } else {
-    console.log('It\'s a Tie')
-  }*/
+    if(sameHand(test[i], test2[i], player1HandType)){
+      console.log('Players had the same type of hand, Player 1 Wins')
+    } else {
+      console.log('Players had the same type of hand, Player 2 Wins')
+    }
+  }
 }
-//console.log(checkHand(test), checkHand(test2))
 //In the event of the two players having the same hand, the player with the highest card wins
